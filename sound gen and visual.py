@@ -1,36 +1,61 @@
-import numpy as np    #need to pyplot work
-import pyaudio as pa  #for works with microphone 
-import struct 
-import matplotlib.pyplot as plt #for graph
-
 import numpy           # for number generator
 import pyaudio         # for audio out
 import math            # for matematical functions
 from tkinter import *  # GUI
 
-###############################################################################
-#                          Audio signal recieving                             #
-###############################################################################
 
-buf = 1024 * 2 #lengh of buffer
-fr = pa.paInt16
-ch = 1     #adress of microphone on pc
-hz = 44100     # RATE in Hz
 
-p = pa.PyAudio()    
 
-stream = p.open(        #streaming params:
-    format = fr,
-    channels = ch,
-    rate = hz,
-    input=True,
-    output=True,
-    frames_per_buffer=buf
-)
+import numpy as np    #need to pyplot work
+import pyaudio as pa  #for works with microphone 
+import struct 
+import matplotlib.pyplot as plt #for graph
 
-###############################################################################
-#                        Work with GUI and plot                               #
-###############################################################################
+
+
+
+def sigrec():   #func for liesten button
+    
+    buf = 1024 * 2 #lengh of buffer
+    fr = pa.paInt16
+    ch = 1     #adress of microphone on pc
+    hz = 44100     # RATE in Hz
+
+    p = pa.PyAudio()    
+
+    stream = p.open(        #streaming params:
+        format = fr,
+        channels = ch,
+        rate = hz,
+        input=True,
+        output=True,
+        frames_per_buffer=buf
+    )
+
+
+
+
+    fig,ax = plt.subplots()
+    x = np.arange(0,2*buf,2)
+    line, = ax.plot(x, np.random.rand(buf),'b')
+    ax.set_ylim(-35000,35000)          #amplitude, may to change (sensivity)
+    ax.ser_xlim = (0,buf)
+    fig.show()
+
+    while 1:     #audio chanel
+        data = stream.read(buf)
+        dataInt = struct.unpack(str(buf) + 'h', data)
+        line.set_ydata(dataInt)
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+   
+
+
+
+
+
+
+
 class ToneGenerator(object):
 
     def __init__(self, samplerate=44100, frames_per_buffer=4410):  # pyaudio init
@@ -86,25 +111,7 @@ class ToneGenerator(object):
 
 
 
-
-def point_amount():                 # Button func
-
-    
-
-
-    fig,ax = plt.subplots()
-    x = np.arange(0,2*buf,2)
-    line, = ax.plot(x, np.random.rand(buf),'b')
-    ax.set_ylim(-35000,35000)          #amplitude, may to change
-    ax.ser_xlim = (0,buf)
-    fig.show()
-
-    while 1:     #audio chanel
-        data = stream.read(buf)
-        dataInt = struct.unpack(str(buf) + 'h', data)
-        line.set_ydata(dataInt)
-        fig.canvas.draw()
-        fig.canvas.flush_events()
+def point_amount():                 # Button func for play
     
     p_points = int(p_entry.get())   # Var for frequency
     p_points2 = int(p_entry2.get()) # Var for time
@@ -118,8 +125,15 @@ def point_amount():                 # Button func
     print("Playing tone at {0:0.2f} Hz".format(frequency))
     generator.play(frequency, step_duration, amplitude)    # Start to play
 
+
+###############################################################################
+#                                 Graphical interface                         #
+###############################################################################
+
+
+
 root = Tk()                         # Create the main window
-root.title("Playing sinus tone")
+root.title("Sinus tone generator")
 
 p_label = Label(text="Frequency, Hz:")
 p_label.grid(row=0, column=0, sticky="w")
@@ -133,8 +147,13 @@ p_entry.grid(row=0, column=1, padx=5, pady=5)
 p_entry2 = Entry()
 p_entry2.grid(row=1, column=1, padx=5, pady=5)
 
-display_button = Button(text="Play", command=point_amount)       # Create the button
-display_button.grid(row=3, column=0, padx=5, pady=5, sticky="e")
+display_button = Button(text="Play tone", command=point_amount)       # Create the button play
+display_button.grid(row=3, column=0, sticky="e")
+
+display_button = Button(text="Liesten", command=sigrec)       # Create the button liesten
+display_button.grid(row=3, column=1, padx=5, pady=5)
+
+
 
 p_label = Label(text="We can hear on the " )
 p_label.grid(row=4, column=0, sticky="w")
@@ -143,3 +162,4 @@ p_label = Label(text="frequency from 20 to 20000 hz" )
 p_label.grid(row=4, column=1, sticky="w")
 
 root.mainloop()         # Start the main loop
+
